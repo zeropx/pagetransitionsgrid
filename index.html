@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+		<title>A Collection of Page Transitions</title>
+		<meta name="description" content="A Collection of Page Transitions with CSS Animations" />
+		<meta name="keywords" content="page transition, css animation, website, effect, css3, jquery" />
+		<meta name="author" content="Codrops" />
+		<link rel="shortcut icon" href="../favicon.ico"> 
+		<link rel="stylesheet" type="text/css" href="css/default.css" />
+		<link rel="stylesheet" type="text/css" href="css/component.css" />
+		<link rel="stylesheet" type="text/css" href="css/animations.css" />
+		<script src="js/modernizr.custom.js"></script>
+	</head>
+	<body>	
+
+		
+			<div id="pt-main" class="pt-perspective">
+
+				<div class="ptg-column pt-page-0">
+					<div class="ptg-column-inner">
+
+						<h1>Column 0</h1>
+
+						<div class="ptg-rows pt-perspective">
+							<div class="ptg-row">inner1</div>
+							<div class="ptg-row">inner2</div>
+							<div class="ptg-row">inner3</div>
+							<div class="ptg-row">inner4</div>
+							<div class="ptg-row">inner5</div>
+							<div class="ptg-row">inner6</div>
+							<div class="ptg-row">inner7</div>
+						</div>
+
+					</div>
+				</div>
+
+
+				<div class="ptg-column pt-page-1">
+					<div class="ptg-column-inner">
+
+						<h1>Column 1</h1>
+
+					</div>
+				</div>
+
+
+				<div class="ptg-column pt-page-2">
+					<div class="ptg-column-inner">
+
+						<h1>Column 2</h1>
+
+						<div class="ptg-rows pt-perspective">
+							<div class="ptg-row">inner1</div>
+							<div class="ptg-row">inner2</div>
+							<div class="ptg-row">inner3</div>
+							<div class="ptg-row">inner3</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="ptg-column pt-page-3">
+					<div class="ptg-column-inner">
+
+						<h1>Column 3</h1>
+
+						<div class="ptg-rows pt-perspective">
+							<div class="ptg-row">inner1</div>
+							<div class="ptg-row">inner2</div>
+							<div class="ptg-row">inner3</div>
+						</div>
+
+					</div>
+				</div>
+
+			</div>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+		<!-- <script src="js/jquery.dlmenu.js"></script> -->
+		<script src="js/jquery.pagetransisionsgrid.js"></script>
+
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+
+
+			$('#pt-main').PageTransitionGrid();
+
+
+
+
+		});	
+
+
+		</script>	
+	</body>
+</html>
