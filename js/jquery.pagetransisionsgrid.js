@@ -226,6 +226,8 @@
     // tell the system to do the transition
     transition: function(direction) {
       var transition = 'col'; // default state
+      var $hasCols = this.ptgColumns.length ? true : false;
+      var $hasRows = this.ptgColumns[this.currCol].r.length ? true : false;
 
       if( this.isAnimating ) {
         return false;
@@ -237,15 +239,21 @@
       switch(direction) {
         case 'right':
         case 'left':
-          transition = 'col';
+         transition = 'col';
         break;
 
         case 'up':
         case'down':
-          transition = 'row';
+          
+          if ($hasRows) {
+            transition = 'row';
+          } else {
+            this.isAnimating = false;
+            return false;
+          }
         break;
       }
-
+      
       // prep current col/row      
       var $currentCol = this.ptgColumns[this.currCol].c;
       var $currentRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]);
