@@ -84,7 +84,14 @@
 
 	<script type="text/javascript">
 		jQuery(document).ready(function($) {
-			$('#pt-main').PageTransitionGrid();
+			// var ptmain = $('#pt-main').PageTransitionGrid();
+			var ptmain = new PageTransitionGrid(('#pt-main'));
+			console.log('asdf');
+			ptmain.init();
+			
+			$('h1').click(function() {
+				ptmain.right()
+			})
 		});	
 	</script>	
 	</body>

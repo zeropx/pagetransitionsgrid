@@ -22,7 +22,7 @@
 
   PageTransitionGrid.prototype = {
     defaults: {
-      debugmessages: true, // just does console stuff
+      debugmessages: false, // just does console stuff
       columnClass:'.ptg-column',
       rowsContainerClass:'.ptg-rows',
       rowClass:'.ptg-row',
@@ -87,6 +87,9 @@
       this.isAnimating = false;
       this.endCurrPage = false;
       this.endNextPage = false;
+      this.hasColumns = false; // Used to define if there are more then 1 column
+      this.hasRows = false; // Used to define if there are more then 1 row
+
 
       // Current Page
       this.currCol = 0;
@@ -145,6 +148,16 @@
 
       ptgColumns = this.$elem.children(this.config.columnClass);
 
+      // Define if columns exist beyond 1. Need at least 1
+      
+      if (ptgColumns.length) {
+        this.hasColumns = ptgColumns.length > 1 ? true : false;
+      } else {
+        // Add in some graceful method of daying "YOU NEED AT LEAST ONE COLUMN TO USE THIS PUPPY"
+        this.dbm('PTG ERROR: You need at least 1 column to use this puppy.', true);
+      }
+
+
       for (var i = ptgColumns.length - 1; i >= 0; i--) {
         $(ptgColumns[i]).data("originalClassList", $(ptgColumns[i]).attr('class'));
         this.ptgColumns[i]  = { "c": $(ptgColumns[i])};
@@ -162,7 +175,9 @@
       // Iterate through each column to define rows for each
       for (var i = this.ptgColumns.length - 1; i >= 0; i--) {
         var rows = this.ptgColumns[i].c.find(this.config.rowsContainerClass).children(this.config.rowClass);
-
+        if (rows.length) {
+          this.hasRows = true;
+        }
         this.ptgColumns[i].r = rows;
         this.ptgColumns[i].currRow = 0;
       }
@@ -181,37 +196,52 @@
 
     // Create navigation
     createNavigation: function() {
+      var _this = this;
       this.nav = {};
       this.nav.container = $('<span>').addClass(this.config.navContainer);
-      this.nav.right = $('<span>').addClass('ptg-button ' + this.config.navRight).html('RIGHT').appendTo(this.nav.container);
-      this.nav.left  = $('<span>').addClass('ptg-button ' + this.config.navLeft).html('LEFT').appendTo(this.nav.container);
-      this.nav.up    = $('<span>').addClass('ptg-button ' + this.config.navUp).html('UP').appendTo(this.nav.container);
-      this.nav.down  = $('<span>').addClass('ptg-button ' + this.config.navDown).html('DOWN').appendTo(this.nav.container);
+      
+
+      // Left and Right navigation
+      if (this.hasColumns) {
+        this.nav.right = $('<span>').addClass('ptg-button ' + this.config.navRight).html('RIGHT').appendTo(this.nav.container);
+        this.nav.left  = $('<span>').addClass('ptg-button ' + this.config.navLeft).html('LEFT').appendTo(this.nav.container);
+
+        // Click Right
+        this.nav.right.bind('click',function() {
+          _this.right();
+        });
+
+        // Click Left
+        this.nav.left.bind('click',function() {
+          _this.left();
+        });
+      }
+
+      // Up and Down navigation
+      if (this.hasRows) {
+        this.nav.up    = $('<span>').addClass('ptg-button ' + this.config.navUp).html('UP').appendTo(this.nav.container);
+        this.nav.down  = $('<span>').addClass('ptg-button ' + this.config.navDown).html('DOWN').appendTo(this.nav.container);
+
+        // Click Up
+        this.nav.up.bind('click',function() {
+          _this.up();
+        });
+
+        // Click Down
+        this.nav.down.bind('click',function() {
+          _this.down();
+        });
+
+      }
+
 
       // Append the nav
       this.nav.container.prependTo(this.$elem);
       
-      var _this = this;
+      
 
-      // Click Right
-      this.nav.right.bind('click',function() {
-        _this.right();
-      });
 
-      // Click Left
-      this.nav.left.bind('click',function() {
-        _this.left();
-      });
 
-      // Click Up
-      this.nav.up.bind('click',function() {
-        _this.up();
-      });
-
-      // Click Down
-      this.nav.down.bind('click',function() {
-        _this.down();
-      });
 
 
       // _this = '';
@@ -263,7 +293,15 @@
 
 
       // Define nextCol
-      this.ptgColumns[this.currCol].nextCol = this.ptgColumns[this.currCol].c.addClass('pt-page-current');
+      if (transition ==  'col') {
+        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[this.currCol].c.addClass('pt-page-current');
+      }
+      
+      // Define nextRow
+      if (transition ==  'col') {
+        this.ptgColumns[this.currCol].nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
+      }
+      
       this.outClass = '';
       this.inClass = '';
       
@@ -273,7 +311,7 @@
 
       // prep next col/row
       var $nextCol = this.ptgColumns[this.currCol].c;
-      var $nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]);
+      var $nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
 
 
 
