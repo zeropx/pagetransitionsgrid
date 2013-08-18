@@ -22,11 +22,11 @@
 
   PageTransitionGrid.prototype = {
     defaults: {
-      debugmessages: false, // just does console stuff
+      debugmessages: true, // just does console stuff
       columnClass:'.ptg-column',
       rowsContainerClass:'.ptg-rows',
       rowClass:'.ptg-row',
-
+      rotateLayout: false, // rotates the col to rows and rows to col
       // Navigation Classes
       navContainer:'ptg-nav',
       navRight:'ptg-button--right',
@@ -49,20 +49,20 @@
       // Default transition styles: Different ease based
       transitions: {
         up: {
-          outClass: 'pt-page-moveToBottomEasing pt-page-ontop',
-          inClass: 'pt-page-moveFromTop'
+          outClass: 'ptg-page-moveToBottomEasing pt-page-ontop',
+          inClass: 'ptg-page-moveFromTop'
         },
         down: {
-          outClass: 'pt-page-moveToTopEasing pt-page-ontop',
-          inClass: 'pt-page-moveFromBottom'
+          outClass: 'ptg-page-moveToTopEasing pt-page-ontop',
+          inClass: 'ptg-page-moveFromBottom'
         },
         left: {
-          outClass: 'pt-page-moveToRightEasing pt-page-ontop',
-          inClass: 'pt-page-moveFromLeft'
+          outClass: 'ptg-page-moveToRightEasing pt-page-ontop',
+          inClass: 'ptg-page-moveFromLeft'
         },
         right: {
-          outClass: 'pt-page-moveToLeftEasing pt-page-ontop',
-          inClass: 'pt-page-moveFromRight'
+          outClass: 'ptg-page-moveToLeftEasing pt-page-ontop',
+          inClass: 'ptg-page-moveFromRight'
         }
       }
 
@@ -93,6 +93,9 @@
 
       // Current Page
       this.currCol = 0;
+      this.nextCol = 0;      
+      // this.currRow = 0;
+      // this.nextRow = 0;
 
       // Current in out classes
       this.outClass = "";
@@ -110,7 +113,6 @@
 
       // Navigation
       this.createNavigation();
-
       return this;
     },
 
@@ -234,18 +236,46 @@
 
       }
 
-
       // Append the nav
       this.nav.container.prependTo(this.$elem);
       
+
+
+      // Keycodes 
+      $(window).keydown(function(e) {
+        var code = e.keyCode ? e.keyCode : e.which;
+        switch(code) {
+          case 39: 
+            _this.right();
+          break;
+          case 37: 
+            _this.left();
+          break;
+          case 38: 
+            _this.up();
+          break;
+          case 40: 
+            _this.down();
+          break;    
+        }
+
+      });
       
-
-
-
-
-
-      // _this = '';
     },
+
+
+
+
+
+    // navigate to specific location
+    navigateTo: function(navigateToId) {
+      this.transition({
+        direction: 'direct',
+        navigateToId: navigateToId
+      });
+    },
+
+
 
 
 
@@ -254,11 +284,37 @@
       unfortunately its messay and needs to be cleaned up.
     */
     // tell the system to do the transition
-    transition: function(direction) {
-      var transition = 'col'; // default state
-      var $hasCols = this.ptgColumns.length ? true : false;
-      var $hasRows = this.ptgColumns[this.currCol].r.length ? true : false;
+    transition: function(o) {
 
+      // Handler of options
+      switch(typeof o) {
+        case "string":
+          o = {direction: o};            
+        break;
+
+        case "object":
+          
+          // Prevent clicking same ID
+          if (this.currCol == o.navigateToId) {
+            return false;
+          }
+        break;
+
+        return false;
+      }
+
+      // Self reference usage
+      var _this = this;
+
+
+      // default space we are moving: options are col, row
+      this.space = 'col'; 
+      
+      // Note if we have a we have a row or col to work with
+      this.hasCols = this.ptgColumns.length ? true : false;
+      this.hasRows = this.ptgColumns[this.currCol].r.length ? true : false;
+
+      // return if is currently animating
       if( this.isAnimating ) {
         return false;
       }
@@ -266,17 +322,17 @@
       this.isAnimating = true;
 
       // Catch direction so we can handle it 
-      switch(direction) {
+      switch(o.direction) {
         case 'right':
         case 'left':
-         transition = 'col';
+         this.space = 'col';
         break;
 
         case 'up':
         case'down':
           
-          if ($hasRows) {
-            transition = 'row';
+          if (this.hasRows) {
+            this.space = 'row';
           } else {
             this.isAnimating = false;
             return false;
@@ -289,16 +345,18 @@
       var $currentRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]);
       
       // Update Current col/row
-      this.updateCurrents(direction);
+      this.updateCurrents(o.direction);
 
 
       // Define nextCol
-      if (transition ==  'col') {
+      if (this.space ==  'col' && o.direction != 'direct') {
         this.ptgColumns[this.currCol].nextCol = this.ptgColumns[this.currCol].c.addClass('pt-page-current');
+      } else if (this.space ==  'col' && o.direction == 'direct') {
+        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[o.navigateToId].c.addClass('pt-page-current');
       }
       
-      // Define nextRow
-      if (transition ==  'col') {
+      // // Define nextRow
+      if (this.space ==  'row') {
         this.ptgColumns[this.currCol].nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
       }
       
@@ -306,20 +364,22 @@
       this.inClass = '';
       
       // update in out classes
-      this.updateInOutClasses(transition, direction);
+      this.updateInOutClasses(o);
 
 
       // prep next col/row
+
+      if (o.direction == 'direct') {
+        this.currCol = o.navigateToId;
+      }
+      
       var $nextCol = this.ptgColumns[this.currCol].c;
       var $nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
 
 
 
-      // Self reference usage
-      var _this = this;
-
       // Transit a col
-      if (transition == 'col') {
+      if (this.space == 'col') {
         // Current page
         $currentCol
           .addClass( this.outClass )
@@ -345,7 +405,7 @@
       }
 
       // Transit a row
-      if (transition == 'row') {
+      if (this.space == 'row') {
         // Current page
         $currentRow
           .addClass( this.outClass )
@@ -376,10 +436,10 @@
 
 
       if( !this.support ) {
-        if (transition == 'col') {
+        if (this.space == 'col') {
           this.onEndAnimation( $currentCol, $nextCol );
         }
-        if (transition == 'row') {
+        if (this.space == 'row') {
           this.onEndAnimation( $currentRow, $nextRow );
         }
         
@@ -387,7 +447,7 @@
 
 
       /* TEMP DEBUG STUFF */
-      var currentStatus = "Direction: " + direction + ", CurrentCol: " + this.currCol + " / " + (this.ptgColumns.length - 1);
+      var currentStatus = "Direction: " + o.direction + ", CurrentCol: " + this.currCol + " / " + (this.ptgColumns.length - 1);
       
       if (this.ptgColumns[this.currCol].r.length > 0) {
         currentStatus+= ", CurrentRow: " + this.ptgColumns[this.currCol].currRow +" / "+ (this.ptgColumns[this.currCol].r.length -1) + "";
@@ -444,30 +504,42 @@
 
 
     // Update in/out classes
-    updateInOutClasses: function(transition, direction) {
+    updateInOutClasses: function(o) {
       // Col & right
-      if(transition == 'col' && direction == 'right') {
+      if(this.space == 'col' && o.direction == 'right') {
         this.outClass = this.config.transitions.right.outClass;
         this.inClass  = this.config.transitions.right.inClass;
       }
 
       // Col & left
-      if(transition == 'col' && direction == 'left') {
+      if(this.space == 'col' && o.direction == 'left') {
         this.outClass = this.config.transitions.left.outClass;
         this.inClass  = this.config.transitions.left.inClass;
       }
 
       // Row & up
-      if(transition == 'row' && direction == 'up') {
+      if(this.space == 'row' && o.direction == 'up') {
         this.outClass = this.config.transitions.up.outClass;
         this.inClass  = this.config.transitions.up.inClass;
       }
 
       // Row & down
-      if(transition == 'row' && direction == 'down') {
+      if(this.space == 'row' && o.direction == 'down') {
         this.outClass = this.config.transitions.down.outClass;
         this.inClass  = this.config.transitions.down.inClass;
       }
+
+      // Direct
+      if (this.space == 'col' && o.direction == 'direct') {
+        if (this.currCol < o.navigateToId) {
+          this.outClass = this.config.transitions.right.outClass;
+          this.inClass  = this.config.transitions.right.inClass;
+        } else {
+          this.outClass = this.config.transitions.left.outClass;
+          this.inClass  = this.config.transitions.left.inClass;
+        }
+
+      };
     },
 
 
@@ -480,7 +552,6 @@
       this.endNextPage = false;
       this.resetPage( $outpage, $inpage );
       this.isAnimating = false;
-
     },
 
 
@@ -510,7 +581,9 @@
 
 
 
-    // Update Current col/row #
+    /*
+      Update col to define next based on incremements of 1
+    */
     updateCurrents: function(direction) {
 
       switch(direction) {
@@ -536,15 +609,20 @@
           } else {
             this.ptgColumns[this.currCol].currRow = 0;
           }
+
+        case "direct":
+        break;
+
         break;
       }
 
     },
 
 
-
-
     
+
+
+
     // Debug Messages, just easier to turn off when done instead of having Console logs everywhere
     dbm: function(msg, spacer) {
       if (this.config.debugmessages === true) {

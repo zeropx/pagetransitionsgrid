@@ -21,7 +21,6 @@ html, body { height: 100%; width: 100%;}
 .ptg-nav .ptg-button--up { top: 0; left: 50%; margin-left: -50px;}
 .ptg-nav .ptg-button--down { bottom: 0; left: 50%; margin-left: -50px;}
 
-
 .pt-perspective {
 	position: relative;
 	width: 100%;
@@ -81,11 +80,13 @@ html, body { height: 100%; width: 100%;}
 	position: relative;
 }
 
-.pt-sub-pages .pt-page {
-	
-
+.ptg-row-inner {
+	width: 400px;
+	height: 400px;
+	overflow: hidden;
+	overflow-y:auto;
+	margin: 200px auto 0 auto;
 }
-
  
 
 .pt-page-current,
@@ -102,9 +103,80 @@ html, body { height: 100%; width: 100%;}
 	z-index: 999;
 }
 
+/*---------------------------------------------------------------------------*\
+
+  // $Extra Styles
+
+\*---------------------------------------------------------------------------*/
+
+.overlay {
+	position: absolute;
+	top: 10%;
+	left: 50%;
+	margin-left: -95px;
+	width: 190px;
+	/*height: 200px;*/
+	background: rgba(0,0,0,.5);
+	z-index: 9999;
+
+}
+.overlay ul,
+.overlay ul li {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.overlay h2 {
+	line-height: 1em;
+	padding: .25em .5em;
+	margin: 0;
+	background: rgba(255,255,255,.8);
+	color: #333;
+	text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
+
+.overlay ul li a {
+	display: block;
+	padding: .5em 1em;
+	color: #AAA;
+	transition: all .2s ease-in-out;
+}
+
+.overlay li a:hover,
+.overlay li a.ptg-nav--active {
+	background: rgba(0,0,0,.1);
+	text-indent: .2em;
+}
+
+.overlay li a.ptg-nav--active {
+	color: #FFF;
+} 
+
+@media screen and (min-width: 700px) {
+	.overlay {
+		position: absolute;
+		top: 10%;
+		left: 15%;
+		width: 190px;
+		/*height: 200px;*/
+		background: rgba(0,0,0,.5);
+		z-index: 9999;
+
+	}
+	.overlay h2 {
+		line-height: 1em;
+		padding: .5em 1em;
+		margin: 0;
+	}
+
+	.overlay ul li a {
+		display: block;
+		padding: 1em 2em;
+	}
+	
+}
+
 /* Text Styles, Colors, Backgrounds */
-
-
 .pt-page-0 {
 	background: #e1ad71;
 }
