@@ -8,7 +8,22 @@
  * Takes the given information and then applies transition toggles so that
  * user can do a up/down/left/right style navigation. 
  * offcanvas style navigation for full pages mostly. 
+
+  options: {
+    
+    Options documentation coming
+
+  },
+
+
+
  */
+
+// TODO: Add navigation ability to target based on ID
+
+// TODO: refactor all this and streamline the code so its easier to read
+
+// TODO: Add Callbacks:
 
 // This is based of code found from http://tympanus.net/Development/PageTransitions/
 
@@ -19,6 +34,8 @@
       this.options = options;
       this.metadata = this.$elem.data('plugin-options');
     };
+
+
 
   PageTransitionGrid.prototype = {
     defaults: {
@@ -33,6 +50,12 @@
       navLeft:'ptg-button--left',
       navUp:'ptg-button--up',
       navDown:'ptg-button--down',
+      menuItems: false,
+      mouseScroll: false,
+
+      // navigation infinite looping 
+      loopColumns: false,
+      loopRows: false,
 
       // events
       animEndEventNames: {
@@ -93,9 +116,7 @@
 
       // Current Page
       this.currCol = 0;
-      this.nextCol = 0;      
-      // this.currRow = 0;
-      // this.nextRow = 0;
+      this.nextCol = 0;
 
       // Current in out classes
       this.outClass = "";
@@ -107,12 +128,15 @@
       // Make the first one load
       this.ptgColumns[0].c.addClass('pt-page-current');
 
+      // loop through all columns and then add class to first row
       for (var i = 0; i < this.ptgColumns.length; i++) {
         $(this.ptgColumns[i].r[0]).addClass('pt-page-current');
       }
 
       // Navigation
       this.createNavigation();
+      this.menu = false;
+
       return this;
     },
 
@@ -198,7 +222,7 @@
 
     // Create navigation
     createNavigation: function() {
-      var _this = this;
+      var self = this;
       this.nav = {};
       this.nav.container = $('<span>').addClass(this.config.navContainer);
       
@@ -210,12 +234,12 @@
 
         // Click Right
         this.nav.right.bind('click',function() {
-          _this.right();
+          self.right();
         });
 
         // Click Left
         this.nav.left.bind('click',function() {
-          _this.left();
+          self.left();
         });
       }
 
@@ -226,12 +250,12 @@
 
         // Click Up
         this.nav.up.bind('click',function() {
-          _this.up();
+          self.up();
         });
 
         // Click Down
         this.nav.down.bind('click',function() {
-          _this.down();
+          self.down();
         });
 
       }
@@ -246,16 +270,16 @@
         var code = e.keyCode ? e.keyCode : e.which;
         switch(code) {
           case 39: 
-            _this.right();
+            self.right();
           break;
           case 37: 
-            _this.left();
+            self.left();
           break;
           case 38: 
-            _this.up();
+            self.up();
           break;
           case 40: 
-            _this.down();
+            self.down();
           break;    
         }
 
@@ -289,7 +313,7 @@
       // Handler of options
       switch(typeof o) {
         case "string":
-          o = {direction: o};            
+          o = {direction: o};       
         break;
 
         case "object":
@@ -304,7 +328,7 @@
       }
 
       // Self reference usage
-      var _this = this;
+      var self = this;
 
 
       // default space we are moving: options are col, row
@@ -383,12 +407,12 @@
         // Current page
         $currentCol
           .addClass( this.outClass )
-          .on( _this.animEndEventName, function() {
+          .on( self.animEndEventName, function() {
             $currentCol.off( this.animEndEventName );
-            _this.endCurrPage = true;
+            self.endCurrPage = true;
 
-            if( _this.endNextPage ) {
-              _this.onEndAnimation( $currentCol, $nextCol );
+            if( self.endNextPage ) {
+              self.onEndAnimation( $currentCol, $nextCol);
             }
         });
 
@@ -396,10 +420,10 @@
         $nextCol
           .addClass( this.inClass )
           .on( this.animEndEventName, function() {
-            $nextCol.off( _this.animEndEventName );
-            _this.endNextPage = true;
-            if( _this.endCurrPage ) {
-              _this.onEndAnimation( $currentCol, $nextCol );
+            $nextCol.off( self.animEndEventName );
+            self.endNextPage = true;
+            if( self.endCurrPage ) {
+              self.onEndAnimation( $currentCol, $nextCol);
             }
         });
       }
@@ -409,12 +433,12 @@
         // Current page
         $currentRow
           .addClass( this.outClass )
-          .on( _this.animEndEventName, function() {
+          .on( self.animEndEventName, function() {
             $currentRow.off( this.animEndEventName );
-            _this.endCurrPage = true;
+            self.endCurrPage = true;
 
-            if( _this.endNextPage ) {
-              _this.onEndAnimation( $currentRow, $nextRow );
+            if( self.endNextPage ) {
+              self.onEndAnimation( $currentRow, $nextRow);
             }
         });
 
@@ -422,10 +446,10 @@
         $nextRow
           .addClass( this.inClass )
           .on( this.animEndEventName, function() {
-            $nextRow.off( _this.animEndEventName );
-            _this.endNextPage = true;
-            if( _this.endCurrPage ) {
-              _this.onEndAnimation( $currentRow, $nextRow );
+            $nextRow.off( self.animEndEventName );
+            self.endNextPage = true;
+            if( self.endCurrPage ) {
+              self.onEndAnimation( $currentRow, $nextRow);
             }
         });
       }
@@ -547,12 +571,12 @@
 
 
     // When animation ends
-    onEndAnimation: function( $outpage, $inpage ) {
+    onEndAnimation: function($outpage, $inpage) {
       this.endCurrPage = false;
       this.endNextPage = false;
       this.resetPage( $outpage, $inpage );
       this.isAnimating = false;
-    },
+     },
 
 
 
@@ -642,7 +666,7 @@
 
   $.fn.PageTransitionGrid = function(options) {
     return this.each(function() {
-      new PageTransitionGrid(this, options).init();
+      new PageTransitionGrid(this, options);
     });
   };
 

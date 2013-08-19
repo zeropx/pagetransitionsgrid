@@ -3,29 +3,32 @@ jQuery(document).ready(function($) {
 
 	var ptmain = new PageTransitionGrid('#pt-main');
 
-
 	ptmain.init();
 
-	ptnav = $('#navigation a');
+
+	ptmain.menu = $('#navigation a');
 
 
-
-	if (ptnav.length) {
+	if (ptmain.menu.length) {
 			
-		ptnav.each(function(i, e) {
+		ptmain.menu.each(function(i, e) {
 
 			$(this).click(function() {
 				var btnID = $(this).attr('id');
+				if (!ptmain.isAnimating) {
+					// Remove active class and apply new one
+					ptmain.menu.removeClass('ptg-nav--active');
+					$(this).addClass('ptg-nav--active');
 
-				// Remove active class and apply new one
-				ptnav.removeClass('ptg-nav--active');
-				$(this).addClass('ptg-nav--active');
+					ptmain.navigateTo(i, {
+						onComplete: function(x) {
+							console.log('completed: ' + x);
+						}
+					});
 
-				ptmain.navigateTo(i);
-
-				// Add ability to target specific object/id
-				//ptmain.navigateTo('#col-1');
-
+					// Add ability to target specific object/id
+					//ptmain.navigateTo('#col-1');
+				}
 			});
 
 		});
