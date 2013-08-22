@@ -100,6 +100,7 @@
 
     // Callbacks
     callbacks: {
+      init: function() {},
       before: function() {},
       after: function() {},
       onAnimationEnd: function() {}
@@ -150,6 +151,9 @@
       this.hideShowNav();
       this.menu = false;
 
+      // perform init callback
+      if (typeof this.callbacks.init === 'function')
+          this.callbacks.init();
       return this;
     },
 
@@ -330,23 +334,11 @@
 
 
     // navigate to specific column
-    navigateToCol: function(col) {
+    // $Row / $Col
+    navigateTo: function(col, row) {
       this.transition({
         direction: 'direct',
         navigateToCol: col
-      });
-    },
-
-
-
-
-
-    // navigate to specific row in a specific column
-    navigateToRow: function(col, row) {
-      this.transition({
-        direction: 'direct',
-        navigateToCol: col,
-        navigateToRow: row
       });
     },
 

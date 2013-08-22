@@ -11,6 +11,9 @@ jQuery(document).ready(function($) {
 	var ptmain = new PageTransitionGrid('#pt-main', options);
 
 	ptmain.init({
+		init: function() {
+			console.log('INITIALIZED BABY');
+		},
 		onAnimationEnd: function() {
 			// console.log('global')
 		}
@@ -31,7 +34,7 @@ jQuery(document).ready(function($) {
 					ptmain.menu.removeClass('ptg-nav--active');
 					$(this).addClass('ptg-nav--active');
 
-     			ptmain.navigateToCol(i);
+     			ptmain.navigateTo(i);
 
 				}
 			});
