@@ -1,12 +1,23 @@
 jQuery(document).ready(function($) {
 	// var ptmain = $('#pt-main').PageTransitionGrid();
 
-	var ptmain = new PageTransitionGrid('#pt-main');
+	options = {
+		debugmessages: true,
+		navRightText:'RIGHT',
+		navLeftText:'LEFT',
+		navUpText:'UP',
+		navDownText:'DOWN'
+	}
+	var ptmain = new PageTransitionGrid('#pt-main', options);
 
-	ptmain.init();
-
+	ptmain.init({
+		onAnimationEnd: function() {
+			// console.log('global')
+		}
+	});
 
 	ptmain.menu = $('#navigation a');
+
 
 
 	if (ptmain.menu.length) {
@@ -20,14 +31,8 @@ jQuery(document).ready(function($) {
 					ptmain.menu.removeClass('ptg-nav--active');
 					$(this).addClass('ptg-nav--active');
 
-					ptmain.navigateTo(i, {
-						onComplete: function(x) {
-							console.log('completed: ' + x);
-						}
-					});
+     			ptmain.navigateToCol(i);
 
-					// Add ability to target specific object/id
-					//ptmain.navigateTo('#col-1');
 				}
 			});
 

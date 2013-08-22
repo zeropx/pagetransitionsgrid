@@ -1,121 +1,3 @@
-/*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
- * Licensed under the MIT License (LICENSE.txt).
- *
- * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
- * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
- * Thanks to: Seamus Leahy for adding deltaX and deltaY
- *
- * Version: 3.1.3
- *
- * Requires: 1.2.2+
- */
-
-(function (factory) {
-    if ( typeof define === 'function' && define.amd ) {
-        // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
-    } else if (typeof exports === 'object') {
-        // Node/CommonJS style for Browserify
-        module.exports = factory;
-    } else {
-        // Browser globals
-        factory(jQuery);
-    }
-}(function ($) {
-
-    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'];
-    var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
-    var lowestDelta, lowestDeltaXY;
-
-    if ( $.event.fixHooks ) {
-        for ( var i = toFix.length; i; ) {
-            $.event.fixHooks[ toFix[--i] ] = $.event.mouseHooks;
-        }
-    }
-
-    $.event.special.mousewheel = {
-        setup: function() {
-            if ( this.addEventListener ) {
-                for ( var i = toBind.length; i; ) {
-                    this.addEventListener( toBind[--i], handler, false );
-                }
-            } else {
-                this.onmousewheel = handler;
-            }
-        },
-
-        teardown: function() {
-            if ( this.removeEventListener ) {
-                for ( var i = toBind.length; i; ) {
-                    this.removeEventListener( toBind[--i], handler, false );
-                }
-            } else {
-                this.onmousewheel = null;
-            }
-        }
-    };
-
-    $.fn.extend({
-        mousewheel: function(fn) {
-            return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
-        },
-
-        unmousewheel: function(fn) {
-            return this.unbind("mousewheel", fn);
-        }
-    });
-
-
-    function handler(event) {
-        var orgEvent = event || window.event,
-            args = [].slice.call(arguments, 1),
-            delta = 0,
-            deltaX = 0,
-            deltaY = 0,
-            absDelta = 0,
-            absDeltaXY = 0,
-            fn;
-        event = $.event.fix(orgEvent);
-        event.type = "mousewheel";
-
-        // Old school scrollwheel delta
-        if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta; }
-        if ( orgEvent.detail )     { delta = orgEvent.detail * -1; }
-
-        // New school wheel delta (wheel event)
-        if ( orgEvent.deltaY ) {
-            deltaY = orgEvent.deltaY * -1;
-            delta  = deltaY;
-        }
-        if ( orgEvent.deltaX ) {
-            deltaX = orgEvent.deltaX;
-            delta  = deltaX * -1;
-        }
-
-        // Webkit
-        if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY; }
-        if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = orgEvent.wheelDeltaX * -1; }
-
-        // Look for lowest delta to normalize the delta values
-        absDelta = Math.abs(delta);
-        if ( !lowestDelta || absDelta < lowestDelta ) { lowestDelta = absDelta; }
-        absDeltaXY = Math.max(Math.abs(deltaY), Math.abs(deltaX));
-        if ( !lowestDeltaXY || absDeltaXY < lowestDeltaXY ) { lowestDeltaXY = absDeltaXY; }
-
-        // Get a whole value for the deltas
-        fn = delta > 0 ? 'floor' : 'ceil';
-        delta  = Math[fn](delta / lowestDelta);
-        deltaX = Math[fn](deltaX / lowestDeltaXY);
-        deltaY = Math[fn](deltaY / lowestDeltaXY);
-
-        // Add event and delta to the front of the arguments
-        args.unshift(event, delta, deltaX, deltaY);
-
-        return ($.event.dispatch || $.event.handle).apply(this, args);
-    }
-
-}));
-
 /*
  * 'PageTransitionGrid'
  * Author: @Eric Casequin
@@ -128,7 +10,7 @@
 
   options: {
     
-    Options documentation coming
+    documentation coming eventually
 
   },
 
@@ -140,34 +22,35 @@
 
 // TODO: refactor all this and streamline the code so its easier to read
 
-// TODO: Add Callbacks:
-
 // This is based of code found from http://tympanus.net/Development/PageTransitions/
 
 (function(window, $){
-  var PageTransitionGrid = function(elem, options){
+  var PageTransitionGrid = function(elem, options, callbacks){
       this.elem = elem;
       this.$elem = $(elem);
       this.options = options;
       this.metadata = this.$elem.data('plugin-options');
     };
 
-
-
   PageTransitionGrid.prototype = {
     defaults: {
-      debugmessages: true, // just does console stuff
+      debugmessages: false, // just does console stuff
       columnClass:'.ptg-column',
       rowsContainerClass:'.ptg-rows',
       rowClass:'.ptg-row',
       rotateLayout: false, // treats the col to rows and rows to col
-      // Navigation Classes
+      
+      // Navigation Classes & text
       nav: true,
       navContainer:'ptg-nav',
-      navRight:'ptg-button--right',
-      navLeft:'ptg-button--left',
-      navUp:'ptg-button--up',
-      navDown:'ptg-button--down',
+      navRight:'ptg-button ptg-button--right',
+      navLeft:'ptg-button ptg-button--left',
+      navUp:'ptg-button ptg-button--up',
+      navDown:'ptg-button ptg-button--down',
+      navRightText:'',
+      navLeftText:'',
+      navUpText:'',
+      navDownText:'',
 
       // Navigtional inputs
       menuItems: false,
@@ -215,12 +98,20 @@
 
 
 
+    // Callbacks
+    callbacks: {
+      before: function() {},
+      after: function() {},
+      onAnimationEnd: function() {}
+    },
+
 
 
     // Initialise Plugin
-    init: function() {
+    init: function(callbacks) {
       this.config = $.extend({}, this.defaults, this.options, this.metadata);
-      
+      this.callbacks = $.extend({}, callbacks);
+
       // Modernizr to fix animation event names for various browsers
       this.animEndEventName = this.config.animEndEventNames[ Modernizr.prefixed( 'animation' ) ];
       
@@ -256,6 +147,7 @@
 
       // Navigation
       this.createNavigation();
+      this.hideShowNav();
       this.menu = false;
 
       return this;
@@ -351,8 +243,8 @@
 
       // Left and Right navigation
       if (this.hasColumns) {
-        this.nav.right = $('<span>').addClass('ptg-button ' + this.config.navRight).html('RIGHT').appendTo(this.nav.container);
-        this.nav.left  = $('<span>').addClass('ptg-button ' + this.config.navLeft).html('LEFT').appendTo(this.nav.container);
+        this.nav.right = $('<span>').addClass(this.config.navRight).html(this.config.navRightText).appendTo(this.nav.container);
+        this.nav.left  = $('<span>').addClass(this.config.navLeft).html(this.config.navLeftText).appendTo(this.nav.container);
 
         // Click Right
         this.nav.right.bind('click',function() {
@@ -367,8 +259,8 @@
 
       // Up and Down navigation
       if (this.hasRows) {
-        this.nav.up    = $('<span>').addClass('ptg-button ' + this.config.navUp).html('UP').appendTo(this.nav.container);
-        this.nav.down  = $('<span>').addClass('ptg-button ' + this.config.navDown).html('DOWN').appendTo(this.nav.container);
+        this.nav.up    = $('<span>').addClass(this.config.navUp).html(this.config.navUpText).appendTo(this.nav.container);
+        this.nav.down  = $('<span>').addClass(this.config.navDown).html(this.config.navDownText).appendTo(this.nav.container);
 
         // Click Up
         this.nav.up.bind('click',function() {
@@ -437,12 +329,47 @@
 
 
 
-    // navigate to specific location
-    navigateTo: function(navigateToId) {
+    // navigate to specific column
+    navigateToCol: function(col) {
       this.transition({
         direction: 'direct',
-        navigateToId: navigateToId
+        navigateToCol: col
       });
+    },
+
+
+
+
+
+    // navigate to specific row in a specific column
+    navigateToRow: function(col, row) {
+      this.transition({
+        direction: 'direct',
+        navigateToCol: col,
+        navigateToRow: row
+      });
+    },
+
+
+
+
+
+    /*
+      HideShow Navigation
+    */
+    // tell the system to do the transition
+    hideShowNav: function() {
+      // hide or show row navigation 
+      if (this.config.nav === true) {
+        if (this.ptgColumns[this.currCol].r.length && this.ptgColumns[this.currCol].r.length > 1) {
+          this.nav.up.fadeIn(200)
+          this.nav.down.fadeIn(200);
+        } else {
+          this.nav.up.fadeOut(200);
+          this.nav.down.fadeOut(200);
+        }
+      }
+
     },
 
 
@@ -454,9 +381,11 @@
       unfortunately its messay and needs to be cleaned up.
     */
     // tell the system to do the transition
-    transition: function(o) {
+    transition: function(o,callbacks) {
+      // Self reference usage
+      var self = this;
 
-      // Handler of options
+      // Get type
       switch(typeof o) {
         case "string":
           o = {direction: o};       
@@ -465,16 +394,13 @@
         case "object":
           
           // Prevent clicking same ID
-          if (this.currCol == o.navigateToId) {
+          if (this.currCol == o.navigateToCol) {
             return false;
           }
         break;
 
         return false;
       }
-
-      // Self reference usage
-      var self = this;
 
 
       // default space we are moving: options are col, row
@@ -509,11 +435,16 @@
           }
         break;
       }
+
+      // perform callback, call here because of the other variables that may be needed
+      if (this.callbacks.before)
+          this.callbacks.before();
       
       // prep current col/row      
       var $currentCol = this.ptgColumns[this.currCol].c;
       var $currentRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]);
       
+
       // Update Current col/row
       this.updateCurrents(o.direction);
 
@@ -522,7 +453,7 @@
       if (this.space ==  'col' && o.direction != 'direct') {
         this.ptgColumns[this.currCol].nextCol = this.ptgColumns[this.currCol].c.addClass('pt-page-current');
       } else if (this.space ==  'col' && o.direction == 'direct') {
-        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[o.navigateToId].c.addClass('pt-page-current');
+        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[o.navigateToCol].c.addClass('pt-page-current');
       }
       
       // // Define nextRow
@@ -536,11 +467,10 @@
       // update in out classes
       this.updateInOutClasses(o);
 
-
       // prep next col/row
 
       if (o.direction == 'direct') {
-        this.currCol = o.navigateToId;
+        this.currCol = o.navigateToCol;
       }
       
       var $nextCol = this.ptgColumns[this.currCol].c;
@@ -607,14 +537,23 @@
 
       if( !this.support ) {
         if (this.space == 'col') {
-          this.onEndAnimation( $currentCol, $nextCol );
+          this.onEndAnimation( $currentCol, $nextCol);
         }
         if (this.space == 'row') {
-          this.onEndAnimation( $currentRow, $nextRow );
+          this.onEndAnimation( $currentRow, $nextRow);
         }
         
       }
+      
+      // Clear selections
+      this.clearSelections();
 
+      // Update display of nav by hiding and showing when needing to
+      this.hideShowNav();
+
+      // perform callback
+      if (this.callbacks.after)
+          this.callbacks.after();
 
       /* TEMP DEBUG STUFF */
       var currentStatus = "Direction: " + o.direction + ", CurrentCol: " + this.currCol + " / " + (this.ptgColumns.length - 1);
@@ -627,11 +566,6 @@
       // Let me know whats going on
       this.dbm(currentStatus, true);
       /* END DEBUG STUFF */
-      
-      // Clear selections
-      this.clearSelections();
-
-
 
     },
 
@@ -701,7 +635,7 @@
 
       // Direct
       if (this.space == 'col' && o.direction == 'direct') {
-        if (this.currCol < o.navigateToId) {
+        if (this.currCol < o.navigateToCol) {
           this.outClass = this.config.transitions.right.outClass;
           this.inClass  = this.config.transitions.right.inClass;
         } else {
@@ -718,11 +652,17 @@
 
     // When animation ends
     onEndAnimation: function($outpage, $inpage) {
+
       this.endCurrPage = false;
       this.endNextPage = false;
       this.resetPage( $outpage, $inpage );
       this.isAnimating = false;
-     },
+
+ 
+      // perform global callback
+      if (this.callbacks.onAnimationEnd)
+          this.callbacks.onAnimationEnd();
+    },
 
 
 
