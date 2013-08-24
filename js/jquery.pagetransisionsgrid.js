@@ -100,10 +100,10 @@
 
     // Callbacks
     callbacks: {
-      init: function() {},
-      before: function() {},
-      after: function() {},
-      onAnimationEnd: function() {}
+      init: function(obj) {},
+      before: function(obj) {},
+      after: function(obj) {},
+      onAnimationEnd: function(obj) {}
     },
 
 
@@ -153,7 +153,7 @@
 
       // perform init callback
       if (typeof this.callbacks.init === 'function')
-          this.callbacks.init();
+          this.callbacks.init(this);
       return this;
     },
 
@@ -430,7 +430,7 @@
 
       // perform callback, call here because of the other variables that may be needed
       if (this.callbacks.before)
-          this.callbacks.before();
+          this.callbacks.before(this);
       
       // prep current col/row      
       var $currentCol = this.ptgColumns[this.currCol].c;
@@ -545,7 +545,7 @@
 
       // perform callback
       if (this.callbacks.after)
-          this.callbacks.after();
+          this.callbacks.after(this);
 
       /* TEMP DEBUG STUFF */
       var currentStatus = "Direction: " + o.direction + ", CurrentCol: " + this.currCol + " / " + (this.ptgColumns.length - 1);
@@ -653,7 +653,7 @@
  
       // perform global callback
       if (this.callbacks.onAnimationEnd)
-          this.callbacks.onAnimationEnd();
+          this.callbacks.onAnimationEnd(this);
     },
 
 

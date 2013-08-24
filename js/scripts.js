@@ -11,17 +11,18 @@ jQuery(document).ready(function($) {
 	var ptmain = new PageTransitionGrid('#pt-main', options);
 
 	ptmain.init({
-		init: function() {
+		init: function(el) {
 			console.log('INITIALIZED BABY');
+			console.log(el);
 		},
 		onAnimationEnd: function() {
-			// console.log('global')
+			console.log("Animation ended")
 		}
 	});
 
 	ptmain.menu = $('#navigation a');
 
-
+	$('#inception').PageTransitionGrid();
 
 	if (ptmain.menu.length) {
 			
