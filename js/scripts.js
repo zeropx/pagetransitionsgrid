@@ -15,36 +15,32 @@ jQuery(document).ready(function($) {
 			console.log('INITIALIZED BABY');
 			console.log(el);
 		},
-		onAnimationEnd: function() {
-			console.log("Animation ended")
+    after: function(obj) {
+      ptmain.menu.removeClass('ptg-nav--active');
+      $(ptmain.menu[obj.currBox]).addClass('ptg-nav--active');
+    },
+		onAnimationEnd: function(obj) {
+
 		}
 	});
 
 	ptmain.menu = $('#navigation a');
 
-	$('#inception').PageTransitionGrid();
-
-	if (ptmain.menu.length) {
-			
+  if (ptmain.menu.length) {
 		ptmain.menu.each(function(i, e) {
 
-			$(this).click(function() {
+      $(this).click(function() {
 				var btnID = $(this).attr('id');
 				if (!ptmain.isAnimating) {
 					// Remove active class and apply new one
 					ptmain.menu.removeClass('ptg-nav--active');
 					$(this).addClass('ptg-nav--active');
-
-     			ptmain.navigateTo(i);
-
+     				ptmain.navigateTo(i);
 				}
 			});
-
 		});
-
-
 	};
 
 
 
-});	
+});
