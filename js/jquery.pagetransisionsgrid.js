@@ -2,8 +2,8 @@
  * 'PageTransitionGrid'
  * Author: @Eric Casequin
  * Description: 
- * Takes a given element and then finds noted columns first, and then it iterates
- * through each column to find rows in each one of them. 
+ * Takes a given element and then finds noted boxs first, and then it iterates
+ * through each box to find items in each one of them. 
  * Takes the given information and then applies transition toggles so that
  * user can do a up/down/left/right style navigation. 
  * offcanvas style navigation for full pages mostly. 
@@ -14,6 +14,8 @@
 
   },
 
+  
+  // Boxes have items
 
 
  */
@@ -35,10 +37,11 @@
   PageTransitionGrid.prototype = {
     defaults: {
       debugmessages: false, // just does console stuff
-      columnClass:'.ptg-column',
-      rowsContainerClass:'.ptg-rows',
-      rowClass:'.ptg-row',
-      rotateLayout: false, // treats the col to rows and rows to col
+      boxClass:'.ptg-box',
+      itemsContainerClass:'.ptg-items',
+      itemClass:'.ptg-item',
+      rotateLayout: false, // default treats Boxes like columns and items like 
+                           // rows. Rotating switches animation behaviors
       
       // Navigation Classes & text
       nav: true,
@@ -58,8 +61,8 @@
       keyboardNav: true,
 
       // navigation infinite looping 
-      loopColumns: false,
-      loopRows: false,
+      // loopboxs: false,
+      // loopitems: false,
 
       // events
       animEndEventNames: {
@@ -76,19 +79,19 @@
       // Default transition styles: Different ease based
       transitions: {
         up: {
-          outClass: 'ptg-page-moveToBottomEasing pt-page-ontop',
+          outClass: 'ptg-page-moveToBottomEasing ptg-box-ontop',
           inClass: 'ptg-page-moveFromTop'
         },
         down: {
-          outClass: 'ptg-page-moveToTopEasing pt-page-ontop',
+          outClass: 'ptg-page-moveToTopEasing ptg-box-ontop',
           inClass: 'ptg-page-moveFromBottom'
         },
         left: {
-          outClass: 'ptg-page-moveToRightEasing pt-page-ontop',
+          outClass: 'ptg-page-moveToRightEasing ptg-box-ontop',
           inClass: 'ptg-page-moveFromLeft'
         },
         right: {
-          outClass: 'ptg-page-moveToLeftEasing pt-page-ontop',
+          outClass: 'ptg-page-moveToLeftEasing ptg-box-ontop',
           inClass: 'ptg-page-moveFromRight'
         }
       }
@@ -113,7 +116,7 @@
       this.config = $.extend({}, this.defaults, this.options, this.metadata);
       this.callbacks = $.extend({}, callbacks);
 
-      // Modernizr to fix animation event names for various browsers
+      // Modernizr to fix animation event names for various bitemsers
       this.animEndEventName = this.config.animEndEventNames[ Modernizr.prefixed( 'animation' ) ];
       
       // support css animations
@@ -123,13 +126,13 @@
       this.isAnimating = false;
       this.endCurrPage = false;
       this.endNextPage = false;
-      this.hasColumns = false; // Used to define if there are more then 1 column
-      this.hasRows = false; // Used to define if there are more then 1 row
+      this.hasboxs = false; // Used to define if there are more then 1 box
+      this.hasitems = false; // Used to define if there are more then 1 item
 
 
       // Current Page
-      this.currCol = 0;
-      this.nextCol = 0;
+      this.currBox = 0;
+      this.nextBox = 0;
 
       // Current in out classes
       this.outClass = "";
@@ -139,11 +142,11 @@
       this.setupGrid();
 
       // Make the first one load
-      this.ptgColumns[0].c.addClass('pt-page-current');
+      this.box[0].b.addClass('ptg-current');
 
-      // loop through all columns and then add class to first row
-      for (var i = 0; i < this.ptgColumns.length; i++) {
-        $(this.ptgColumns[i].r[0]).addClass('pt-page-current');
+      // loop through all boxs and then add class to first item
+      for (var i = 0; i < this.box.length; i++) {
+        $(this.box[i].item[0]).addClass('ptg-current');
       }
 
       // Navigation
@@ -160,21 +163,21 @@
 
 
 
-    // Sets up general columns/rows grid 
+    // Sets up general boxs/items grid 
     setupGrid: function() {
       this.dbm('grid setup', true);
-      this.ptgColumns = [];
+      this.box = [];
 
-      // Get columns
-      this.getColumns();
+      // Get boxs
+      this.getboxs();
       
-      // Get Rows for each column
-      this.getRows();
+      // Get items for each box
+      this.getitems();
 
-      for (var i = 0; i < this.ptgColumns.length; i++) {
-        var rows = this.ptgColumns[i].c.find(this.config.rowsContainerClass).children(this.config.rowClass);
+      for (var i = 0; i < this.box.length; i++) {
+        var items = this.box[i].b.find(this.config.itemsContainerClass).children(this.config.itemClass);
 
-        this.dbm("Column # [" + i + "] has [" + this.ptgColumns[i].r.length + "] rows");
+        this.dbm("box # [" + i + "] has [" + this.box[i].item.length + "] items");
       }
 
 
@@ -185,50 +188,50 @@
 
 
 
-    // Get total columns 
-    getColumns: function() {
-      this.dbm('Getting Columns: ' + this.config.columnClass, true);
+    // Get total boxs 
+    getboxs: function() {
+      this.dbm('Getting boxs: ' + this.config.boxClass, true);
 
-      ptgColumns = this.$elem.children(this.config.columnClass);
+      box = this.$elem.children(this.config.boxClass);
 
-      // Define if columns exist beyond 1. Need at least 1
+      // Define if boxs exist beyond 1. Need at least 1
       
-      if (ptgColumns.length) {
-        this.hasColumns = ptgColumns.length > 1 ? true : false;
+      if (box.length) {
+        this.hasboxs = box.length > 1 ? true : false;
       } else {
-        // Add in some graceful method of daying "YOU NEED AT LEAST ONE COLUMN TO USE THIS PUPPY"
-        this.dbm('PTG ERROR: You need at least 1 column to use this puppy.', true);
+        // Add in some graceful method of daying "YOU NEED AT LEAST ONE box TO USE THIS PUPPY"
+        this.dbm('PTG ERROR: You need at least 1 box to use this puppy.', true);
       }
 
 
-      for (var i = ptgColumns.length - 1; i >= 0; i--) {
-        $(ptgColumns[i]).data("originalClassList", $(ptgColumns[i]).attr('class'));
-        this.ptgColumns[i]  = { "c": $(ptgColumns[i])};
+      for (var i = box.length - 1; i >= 0; i--) {
+        $(box[i]).data("originalClassList", $(box[i]).attr('class'));
+        this.box[i]  = { b: $(box[i])};
 
       }
-      this.dbm('Found: ' + this.ptgColumns.length + " columns");
+      this.dbm('Found: ' + this.box.length + " boxs");
     },
 
 
 
 
 
-    // Get rows from each column available
-    getRows: function() {
-      // Iterate through each column to define rows for each
-      for (var i = this.ptgColumns.length - 1; i >= 0; i--) {
-        var rows = this.ptgColumns[i].c.find(this.config.rowsContainerClass).children(this.config.rowClass);
-        if (rows.length) {
-          this.hasRows = true;
+    // Get items from each box available
+    getitems: function() {
+      // Iterate through each box to define items for each
+      for (var i = this.box.length - 1; i >= 0; i--) {
+        var items = this.box[i].b.find(this.config.itemsContainerClass).children(this.config.itemClass);
+        if (items.length) {
+          this.hasitems = true;
         }
-        this.ptgColumns[i].r = rows;
-        this.ptgColumns[i].currRow = 0;
+        this.box[i].item = items;
+        this.box[i].curritem = 0;
       }
 
       // add the orignal classes
-      for (i = 0; i < this.ptgColumns.length; i++) {
-        for (var d = 0; d < this.ptgColumns[i].r.length; d++) {
-          $(this.ptgColumns[i].r[d]).data("originalClassList", $(this.ptgColumns[i].r[d]).attr('class') );
+      for (i = 0; i < this.box.length; i++) {
+        for (var d = 0; d < this.box[i].item.length; d++) {
+          $(this.box[i].item[d]).data("originalClassList", $(this.box[i].item[d]).attr('class') );
         }
       }
 
@@ -246,7 +249,7 @@
       
 
       // Left and Right navigation
-      if (this.hasColumns) {
+      if (this.hasboxs) {
         this.nav.right = $('<span>').addClass(this.config.navRight).html(this.config.navRightText).appendTo(this.nav.container);
         this.nav.left  = $('<span>').addClass(this.config.navLeft).html(this.config.navLeftText).appendTo(this.nav.container);
 
@@ -262,7 +265,7 @@
       }
 
       // Up and Down navigation
-      if (this.hasRows) {
+      if (this.hasitems) {
         this.nav.up    = $('<span>').addClass(this.config.navUp).html(this.config.navUpText).appendTo(this.nav.container);
         this.nav.down  = $('<span>').addClass(this.config.navDown).html(this.config.navDownText).appendTo(this.nav.container);
 
@@ -333,12 +336,12 @@
 
 
 
-    // navigate to specific column
-    // $Row / $Col
-    navigateTo: function(col, row) {
+    // navigate to specific box
+    // $item / $box
+    navigateTo: function(box, item) {
       this.transition({
         direction: 'direct',
-        navigateToCol: col
+        navigateToBox: box
       });
     },
 
@@ -351,9 +354,9 @@
     */
     // tell the system to do the transition
     hideShowNav: function() {
-      // hide or show row navigation 
+      // hide or show item navigation 
       if (this.config.nav === true) {
-        if (this.ptgColumns[this.currCol].r.length && this.ptgColumns[this.currCol].r.length > 1) {
+        if (this.box[this.currBox].item.length && this.box[this.currBox].item.length > 1) {
           this.nav.up.fadeIn(200)
           this.nav.down.fadeIn(200);
         } else {
@@ -386,7 +389,7 @@
         case "object":
           
           // Prevent clicking same ID
-          if (this.currCol == o.navigateToCol) {
+          if (this.currBox == o.navigateToBox) {
             return false;
           }
         break;
@@ -395,12 +398,12 @@
       }
 
 
-      // default space we are moving: options are col, row
-      this.space = 'col'; 
+      // default space we are moving: options are box, item
+      this.space = 'box'; 
       
-      // Note if we have a we have a row or col to work with
-      this.hasCols = this.ptgColumns.length ? true : false;
-      this.hasRows = this.ptgColumns[this.currCol].r.length ? true : false;
+      // Note if we have a we have a item or box to work with
+      this.hasBoxes = this.box.length ? true : false;
+      this.hasitems = this.box[this.currBox].item.length ? true : false;
 
       // return if is currently animating
       if( this.isAnimating ) {
@@ -413,14 +416,14 @@
       switch(o.direction) {
         case 'right':
         case 'left':
-         this.space = 'col';
+         this.space = 'box';
         break;
 
         case 'up':
         case'down':
           
-          if (this.hasRows) {
-            this.space = 'row';
+          if (this.hasitems) {
+            this.space = 'item';
           } else {
             this.isAnimating = false;
             return false;
@@ -432,25 +435,25 @@
       if (this.callbacks.before)
           this.callbacks.before(this);
       
-      // prep current col/row      
-      var $currentCol = this.ptgColumns[this.currCol].c;
-      var $currentRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]);
+      // prep current box/item      
+      var $currentBox = this.box[this.currBox].b;
+      var $currentitem = $(this.box[this.currBox].item[this.box[this.currBox].curritem]);
       
 
-      // Update Current col/row
+      // Update Current box/item
       this.updateCurrents(o.direction);
 
 
-      // Define nextCol
-      if (this.space ==  'col' && o.direction != 'direct') {
-        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[this.currCol].c.addClass('pt-page-current');
-      } else if (this.space ==  'col' && o.direction == 'direct') {
-        this.ptgColumns[this.currCol].nextCol = this.ptgColumns[o.navigateToCol].c.addClass('pt-page-current');
+      // Define nextBox
+      if (this.space ==  'box' && o.direction != 'direct') {
+        this.box[this.currBox].nextBox = this.box[this.currBox].b.addClass('ptg-current');
+      } else if (this.space ==  'box' && o.direction == 'direct') {
+        this.box[this.currBox].nextBox = this.box[o.navigateToBox].b.addClass('ptg-current');
       }
       
-      // // Define nextRow
-      if (this.space ==  'row') {
-        this.ptgColumns[this.currCol].nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
+      // // Define nextitem
+      if (this.space ==  'item') {
+        this.box[this.currBox].nextitem = $(this.box[this.currBox].item[this.box[this.currBox].curritem]).addClass('ptg-current');
       }
       
       this.outClass = '';
@@ -459,65 +462,65 @@
       // update in out classes
       this.updateInOutClasses(o);
 
-      // prep next col/row
+      // prep next box/item
 
       if (o.direction == 'direct') {
-        this.currCol = o.navigateToCol;
+        this.currBox = o.navigateToBox;
       }
       
-      var $nextCol = this.ptgColumns[this.currCol].c;
-      var $nextRow = $(this.ptgColumns[this.currCol].r[this.ptgColumns[this.currCol].currRow]).addClass('pt-page-current');
+      var $nextBox = this.box[this.currBox].b;
+      var $nextitem = $(this.box[this.currBox].item[this.box[this.currBox].curritem]).addClass('ptg-current');
 
 
 
-      // Transit a col
-      if (this.space == 'col') {
+      // Transit a box
+      if (this.space == 'box') {
         // Current page
-        $currentCol
+        $currentBox
           .addClass( this.outClass )
           .on( self.animEndEventName, function() {
-            $currentCol.off( this.animEndEventName );
+            $currentBox.off( this.animEndEventName );
             self.endCurrPage = true;
 
             if( self.endNextPage ) {
-              self.onEndAnimation( $currentCol, $nextCol);
+              self.onEndAnimation( $currentBox, $nextBox);
             }
         });
 
         // Next Page
-        $nextCol
+        $nextBox
           .addClass( this.inClass )
           .on( this.animEndEventName, function() {
-            $nextCol.off( self.animEndEventName );
+            $nextBox.off( self.animEndEventName );
             self.endNextPage = true;
             if( self.endCurrPage ) {
-              self.onEndAnimation( $currentCol, $nextCol);
+              self.onEndAnimation( $currentBox, $nextBox);
             }
         });
       }
 
-      // Transit a row
-      if (this.space == 'row') {
+      // Transit a item
+      if (this.space == 'item') {
         // Current page
-        $currentRow
+        $currentitem
           .addClass( this.outClass )
           .on( self.animEndEventName, function() {
-            $currentRow.off( this.animEndEventName );
+            $currentitem.off( this.animEndEventName );
             self.endCurrPage = true;
 
             if( self.endNextPage ) {
-              self.onEndAnimation( $currentRow, $nextRow);
+              self.onEndAnimation( $currentitem, $nextitem);
             }
         });
 
         // Next Page
-        $nextRow
+        $nextitem
           .addClass( this.inClass )
           .on( this.animEndEventName, function() {
-            $nextRow.off( self.animEndEventName );
+            $nextitem.off( self.animEndEventName );
             self.endNextPage = true;
             if( self.endCurrPage ) {
-              self.onEndAnimation( $currentRow, $nextRow);
+              self.onEndAnimation( $currentitem, $nextitem);
             }
         });
       }
@@ -528,11 +531,11 @@
 
 
       if( !this.support ) {
-        if (this.space == 'col') {
-          this.onEndAnimation( $currentCol, $nextCol);
+        if (this.space == 'box') {
+          this.onEndAnimation( $currentBox, $nextBox);
         }
-        if (this.space == 'row') {
-          this.onEndAnimation( $currentRow, $nextRow);
+        if (this.space == 'item') {
+          this.onEndAnimation( $currentitem, $nextitem);
         }
         
       }
@@ -548,12 +551,12 @@
           this.callbacks.after(this);
 
       /* TEMP DEBUG STUFF */
-      var currentStatus = "Direction: " + o.direction + ", CurrentCol: " + this.currCol + " / " + (this.ptgColumns.length - 1);
+      var currentStatus = "Direction: " + o.direction + ", currentBox: " + this.currBox + " / " + (this.box.length - 1);
       
-      if (this.ptgColumns[this.currCol].r.length > 0) {
-        currentStatus+= ", CurrentRow: " + this.ptgColumns[this.currCol].currRow +" / "+ (this.ptgColumns[this.currCol].r.length -1) + "";
+      if (this.box[this.currBox].item.length > 0) {
+        currentStatus+= ", Currentitem: " + this.box[this.currBox].curritem +" / "+ (this.box[this.currBox].item.length -1) + "";
       } else {
-        currentStatus+= ", CurrentRow: no rows found in this column";
+        currentStatus+= ", Currentitem: no items found in this box";
       }
       // Let me know whats going on
       this.dbm(currentStatus, true);
@@ -601,33 +604,33 @@
 
     // Update in/out classes
     updateInOutClasses: function(o) {
-      // Col & right
-      if(this.space == 'col' && o.direction == 'right') {
+      // Box & right
+      if(this.space == 'box' && o.direction == 'right') {
         this.outClass = this.config.transitions.right.outClass;
         this.inClass  = this.config.transitions.right.inClass;
       }
 
-      // Col & left
-      if(this.space == 'col' && o.direction == 'left') {
+      // Box & left
+      if(this.space == 'box' && o.direction == 'left') {
         this.outClass = this.config.transitions.left.outClass;
         this.inClass  = this.config.transitions.left.inClass;
       }
 
-      // Row & up
-      if(this.space == 'row' && o.direction == 'up') {
+      // item & up
+      if(this.space == 'item' && o.direction == 'up') {
         this.outClass = this.config.transitions.up.outClass;
         this.inClass  = this.config.transitions.up.inClass;
       }
 
-      // Row & down
-      if(this.space == 'row' && o.direction == 'down') {
+      // item & down
+      if(this.space == 'item' && o.direction == 'down') {
         this.outClass = this.config.transitions.down.outClass;
         this.inClass  = this.config.transitions.down.inClass;
       }
 
       // Direct
-      if (this.space == 'col' && o.direction == 'direct') {
-        if (this.currCol < o.navigateToCol) {
+      if (this.space == 'box' && o.direction == 'direct') {
+        if (this.currBox < o.navigateToBox) {
           this.outClass = this.config.transitions.right.outClass;
           this.inClass  = this.config.transitions.right.inClass;
         } else {
@@ -663,7 +666,7 @@
     // reset settings 
     resetPage: function( $outpage, $inpage ) {
       $outpage.attr( 'class', $outpage.data("originalClassList") );
-      $inpage.attr( 'class', $inpage.data("originalClassList") + ' pt-page-current' );
+      $inpage.attr( 'class', $inpage.data("originalClassList") + ' ptg-current' );
     },
 
 
@@ -684,32 +687,32 @@
 
 
     /*
-      Update col to define next based on incremements of 1
+      Update to define next based on incremements of 1
     */
     updateCurrents: function(direction) {
 
       switch(direction) {
         case "right":
-          this.currCol = this.currCol < this.ptgColumns.length - 1 ? ++this.currCol : 0;
+          this.currBox = this.currBox < this.box.length - 1 ? ++this.currBox : 0;
         break;
 
         case "left":
-          this.currCol = (this.currCol > 0) ? --this.currCol : this.ptgColumns.length - 1;
+          this.currBox = (this.currBox > 0) ? --this.currBox : this.box.length - 1;
         break;
 
         case "up":
-          if (this.ptgColumns[this.currCol].currRow > 0) {
-            --this.ptgColumns[this.currCol].currRow;
+          if (this.box[this.currBox].curritem > 0) {
+            --this.box[this.currBox].curritem;
           } else {
-            this.ptgColumns[this.currCol].currRow = this.ptgColumns[this.currCol].r.length - 1;
+            this.box[this.currBox].curritem = this.box[this.currBox].item.length - 1;
           }
         break;
 
         case "down":
-          if (this.ptgColumns[this.currCol].currRow < this.ptgColumns[this.currCol].r.length -1) {
-            ++this.ptgColumns[this.currCol].currRow;
+          if (this.box[this.currBox].curritem < this.box[this.currBox].item.length -1) {
+            ++this.box[this.currBox].curritem;
           } else {
-            this.ptgColumns[this.currCol].currRow = 0;
+            this.box[this.currBox].curritem = 0;
           }
 
         case "direct":

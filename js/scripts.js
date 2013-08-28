@@ -1,5 +1,5 @@
 jQuery(document).ready(function($) {
-	// var ptmain = $('#pt-main').PageTransitionGrid();
+	// var ptmain = $('#ptg-main').PageTransitionGrid();
 
 	options = {
 		debugmessages: true,
@@ -8,7 +8,7 @@ jQuery(document).ready(function($) {
 		navUpText:'UP',
 		navDownText:'DOWN'
 	}
-	var ptmain = new PageTransitionGrid('#pt-main', options);
+	var ptmain = new PageTransitionGrid('#ptg-main', options);
 
 	ptmain.init({
 		init: function(el) {
