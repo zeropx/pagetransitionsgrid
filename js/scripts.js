@@ -29,7 +29,8 @@ jQuery(document).ready(function($) {
   if (ptmain.menu.length) {
 		ptmain.menu.each(function(i, e) {
 
-      $(this).click(function() {
+      $(this).click(function(e) {
+        e.preventDefault();
 				var btnID = $(this).attr('id');
 				if (!ptmain.isAnimating) {
 					// Remove active class and apply new one
